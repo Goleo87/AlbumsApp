@@ -57,7 +57,7 @@ try {
 }
 
 //* Default route
-app.get("/", async (req, res) => {
+app.get("/albums", async (req, res) => {
   const albums = await Album.find();
   res.status(200).json(albums);
 });
@@ -102,7 +102,7 @@ app.patch("/update/:id", upload.single("jacket"), async (req, res, next) => {
 
 //All other requests except for the 4 server routes above
 app.get("*", (req, res, next) => {
-  res.sendFile(__dirname + "/frontend/dist/assets/index.html");
+  res.sendFile(__dirname + "/frontend/dist/index.html");
 });
 
 //* Global Error Handling
