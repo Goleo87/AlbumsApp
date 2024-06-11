@@ -6,7 +6,7 @@ import multer from "multer";
 
 const storage = multer.diskStorage({
   destination: (req, file, callback) => {
-    callback(null, "frontend/public/");
+    callback(null, "./frontend/public/");
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname);
@@ -39,9 +39,11 @@ app.get("/", async (req, res) => {
 app.post("/add", upload.single("jacket"), async (req, res, next) => {
   try {
     let newAlbum = new Album(req.body);
-    newAlbum.jacket = req.file.filename;
-    await newAlbum.save();
-    res.status(200).json(newAlbum);
+    if (req.file) {
+      newAlbum.jacket = req.file.filename;
+      await newAlbum.save();
+      res.status(200).json(newAlbum);
+    }
   } catch (error) {
     next(error);
   }
@@ -60,8 +62,8 @@ app.delete("/delete/:id", async (req, res, next) => {
 app.patch("/update/:id", upload.single("jacket"), async (req, res, next) => {
   const id = req.params.id;
   try {
-    let toUpdate = await Album.findByIdAndUpdate(id, {jacket: req.file.filename}, {new: true});
-  
+    let toUpdate = await Album.findByIdAndUpdate(id, { jacket: req.file.filename }, { new: true });
+
     res.status(200).json(toUpdate);
   } catch (error) {
     next(error);
