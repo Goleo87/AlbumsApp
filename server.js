@@ -3,50 +3,49 @@ import mongoose from "mongoose";
 import Album from "./Model/Album.js";
 import cors from "cors";
 import multer from "multer";
-import path from "path";
-import { fileURLToPath } from "url";
-
-
+import path from "path"
+import { fileURLToPath } from "url"
 
 const app = express();
+//*get the current file and directory
 
-app.use(express.json());
-app.use(cors());
+const __filename = fileURLToPath(import.meta.url); //absolute path to the current file
+const __dirname = path.dirname(__filename); //directory name of the current file
 
-const __filename = fileURLToPath(import.meta.url); // absolute path of current file
+app.use(express.static(path.join(__dirname, "frontend/dist"))); //specify the path for our frontend (current directory + path we want to get in)
 
-const __dirname = path.dirname(__filename); // absolute path of current directory
+//* Server our files statically from the server side
 
-//serve our static files
-
-app.use(express.static(path.join(__dirname, "frontend/dist"))); // specify the folder where the static files are located
-
-// Multer configuration
+//* Multer configuration:
 
 let storage;
-
 if (process.env.NODE_ENV === "development") {
   storage = multer.diskStorage({
     destination: (req, file, callback) => {
-      callback(null, "frontend/public");
+      callback(null, "./frontend/public/");
     },
     filename: (req, file, cb) => {
       cb(null, file.originalname);
     },
     limits: { fileSize: 150000 }, // 150kb
   });
-} else storage = multer.diskStorage({
-  destination: (req, file, callback) => {
-    callback(null, "frontend/dist");
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.originalname);
-  },
-  limits: { fileSize: 150000 }, // 150kb
-});
+} else {
+  storage = multer.diskStorage({
+    destination: (req, file, callback) => {
+      callback(null, "./frontend/dist/");
+    },
+    filename: (req, file, cb) => {
+      cb(null, file.originalname);
+    },
+    limits: { fileSize: 150000 }, // 150kb
+  });
+}
 
 const upload = multer({ storage: storage });
 
+
+app.use(express.json());
+app.use(cors());
 
 //* Store your own MongoDB connection string in .env file!
 try {
@@ -57,8 +56,8 @@ try {
   console.log("Database connection failed... :(");
 }
 
-//* Default route for getting all albums
-app.get("/albums", async (req, res) => {
+//* Default route
+app.get("/", async (req, res) => {
   const albums = await Album.find();
   res.status(200).json(albums);
 });
@@ -89,16 +88,21 @@ app.delete("/delete/:id", async (req, res, next) => {
 app.patch("/update/:id", upload.single("jacket"), async (req, res, next) => {
   const id = req.params.id;
   try {
-    let toUpdate = await Album.findByIdAndUpdate(id, { jacket: req.file.filename }, { new: true });
+    let toUpdate = await Album.findByIdAndUpdate(
+      id,
+      { jacket: req.file.filename },
+      { new: true }
+    );
 
     res.status(200).json(toUpdate);
   } catch (error) {
     next(error);
   }
 });
-// all other requests except the ones above will be handled by this route
-app.get("*", (req, res) => {
-  res.sendFile(__dirname, "frontend/dist/assets/index.html");
+
+//All other requests except for the 4 server routes above
+app.get("*", (req, res, next) => {
+  res.sendFile(__dirname + "/frontend/dist/assets/index.html");
 });
 
 //* Global Error Handling
@@ -111,7 +115,9 @@ app.use(function errorHandler(err, req, res, next) {
     },
   });
 });
+
 const port = process.env.PORT || 3001;
+
 app.listen(port, () => {
-  console.log(`Server is listening to port 3002`);
+  console.log(`Server is listening to port ${port}`);
 });
