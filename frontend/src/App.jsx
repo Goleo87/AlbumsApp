@@ -14,7 +14,9 @@ function App() {
   }, [album]);
 
   async function getAlbums() {
-    const response = await fetch(import.meta.env.VITE_API);
+    const response = await fetch(import.meta.env.VITE_API, {
+      method: "GET"
+    });
     if (response.ok) {
       const data = await response.json();
       setAlbums(data);

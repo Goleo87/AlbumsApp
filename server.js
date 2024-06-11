@@ -3,10 +3,41 @@ import mongoose from "mongoose";
 import Album from "./Model/Album.js";
 import cors from "cors";
 import multer from "multer";
+import path from "path";
+import { fileURLToPath } from "url";
 
-const storage = multer.diskStorage({
+
+
+const app = express();
+
+app.use(express.json());
+app.use(cors());
+
+const __filename = fileURLToPath(import.meta.url); // absolute path of current file
+
+const __dirname = path.dirname(__filename); // absolute path of current directory
+
+//serve our static files
+
+app.use(express.static(path.join(__dirname, "frontend/dist"))); // specify the folder where the static files are located
+
+// Multer configuration
+
+let storage;
+
+if (process.env.NODE_ENV === "development") {
+  storage = multer.diskStorage({
+    destination: (req, file, callback) => {
+      callback(null, "frontend/public");
+    },
+    filename: (req, file, cb) => {
+      cb(null, file.originalname);
+    },
+    limits: { fileSize: 150000 }, // 150kb
+  });
+} else storage = multer.diskStorage({
   destination: (req, file, callback) => {
-    callback(null, "frontend/public/");
+    callback(null, "frontend/dist");
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname);
@@ -16,10 +47,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-const app = express();
-
-app.use(express.json());
-app.use(cors());
 
 //* Store your own MongoDB connection string in .env file!
 try {
@@ -30,8 +57,8 @@ try {
   console.log("Database connection failed... :(");
 }
 
-//* Default route
-app.get("/", async (req, res) => {
+//* Default route for getting all albums
+app.get("/albums", async (req, res) => {
   const albums = await Album.find();
   res.status(200).json(albums);
 });
@@ -69,6 +96,10 @@ app.patch("/update/:id", upload.single("jacket"), async (req, res, next) => {
     next(error);
   }
 });
+// all other requests except the ones above will be handled by this route
+app.get("*", (req, res) => {
+  res.sendFile(__dirname, "frontend/dist/assets/index.html");
+});
 
 //* Global Error Handling
 app.use(function errorHandler(err, req, res, next) {
@@ -80,7 +111,7 @@ app.use(function errorHandler(err, req, res, next) {
     },
   });
 });
-
-app.listen(3002, () => {
-  console.log("Server is listening to port 3002");
+const port = process.env.PORT || 3001;
+app.listen(port, () => {
+  console.log(`Server is listening to port 3002`);
 });
