@@ -14,7 +14,7 @@ function App() {
   }, [album]);
 
   async function getAlbums() {
-    const response = await fetch("http://localhost:3002");
+    const response = await fetch(`${import.meta.env.VITE_API}`);
     if (response.ok) {
       const data = await response.json();
       setAlbums(data);
@@ -40,7 +40,7 @@ function App() {
     fileInput.current.value = ""; // 3. this resets the file input value :)
 
     try {
-      const response = await fetch("http://localhost:3002/add", {
+      const response = await fetch(`${import.meta.env.VITE_API}/add`, {
         method: "POST",
         body: formData,
       });

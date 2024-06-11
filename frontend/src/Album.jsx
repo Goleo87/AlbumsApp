@@ -9,7 +9,7 @@ const Album = ({ album, getAlbums, inputs, setInputs }) => {
       setInputs({});
 
       const response = await fetch(
-        `http://localhost:3002/update/${album._id}`,
+        `${import.meta.env.VITE_API}/update/${album._id}`,
         {
           method: "PATCH",
           body: formData,
@@ -30,7 +30,7 @@ const Album = ({ album, getAlbums, inputs, setInputs }) => {
   async function handleDelete() {
     try {
       const response = await fetch(
-        `http://localhost:3002/delete/${album._id}`,
+        `${import.meta.env.VITE_API}/${album._id}`,
         {
           method: "DELETE",
         }
