@@ -14,7 +14,7 @@ function App() {
   }, [album]);
 
   async function getAlbums() {
-    const response = await fetch(`${import.meta.env.VITE_API}`);
+    const response = await fetch(import.meta.env.VITE_API);
     if (response.ok) {
       const data = await response.json();
       setAlbums(data);
@@ -91,7 +91,7 @@ function App() {
         <button>Add</button>
       </form>
       {!!albums.length &&
-        albums.map(album => (
+        albums.map((album) => (
           <Album
             key={album._id}
             album={album}
