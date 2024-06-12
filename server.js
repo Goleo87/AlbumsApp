@@ -5,9 +5,15 @@ import cors from "cors";
 import multer from "multer";
 import path from "path"
 import { fileURLToPath } from "url"
+import  verifyCaptcha  from "./middleware/Recaptcha.js";
 
 const app = express();
 //*get the current file and directory
+
+// Set up middleware
+app.use(express.json());
+
+
 
 const __filename = fileURLToPath(import.meta.url); //absolute path to the current file
 const __dirname = path.dirname(__filename); //directory name of the current file
@@ -22,7 +28,7 @@ let storage;
 if (process.env.NODE_ENV === "development") {
   storage = multer.diskStorage({
     destination: (req, file, callback) => {
-      callback(null, "./frontend/public/");
+      callback(null, "frontend/public");
     },
     filename: (req, file, cb) => {
       cb(null, file.originalname);
@@ -32,7 +38,7 @@ if (process.env.NODE_ENV === "development") {
 } else {
   storage = multer.diskStorage({
     destination: (req, file, callback) => {
-      callback(null, "./frontend/dist/");
+      callback(null, "frontend/dist");
     },
     filename: (req, file, cb) => {
       cb(null, file.originalname);
@@ -62,7 +68,7 @@ app.get("/albums", async (req, res) => {
   res.status(200).json(albums);
 });
 
-app.post("/add", upload.single("jacket"), async (req, res, next) => {
+app.post("/add", upload.single("jacket"), verifyCaptcha, async (req, res, next) => {
   try {
     let newAlbum = new Album(req.body);
     if (req.file) {
@@ -102,7 +108,7 @@ app.patch("/update/:id", upload.single("jacket"), async (req, res, next) => {
 
 //All other requests except for the 4 server routes above
 app.get("*", (req, res, next) => {
-  res.sendFile(__dirname + "/frontend/dist/index.html");
+  res.sendFile(__dirname + "frontend/dist");
 });
 
 //* Global Error Handling

@@ -1,6 +1,7 @@
 import "./App.css";
 import { useState, useEffect, useRef } from "react";
 import Album from "./Album";
+import ReCAPTCHA from "react-google-recaptcha";
 
 function App() {
   const [inputs, setInputs] = useState({});
@@ -9,13 +10,15 @@ function App() {
 
   const fileInput = useRef(null); // 1. this will hold a reference to our file input!
 
+  const reCaptcha = useRef(null);
+
   useEffect(() => {
     getAlbums();
   }, [album]);
 
   async function getAlbums() {
     const response = await fetch(`${import.meta.env.VITE_API}/albums`, {
-      method: "GET"
+      method: "GET",
     });
     if (response.ok) {
       const data = await response.json();
@@ -32,37 +35,56 @@ function App() {
   async function handleSubmit(e) {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", inputs.title);
-    formData.append("year", inputs.year);
-    formData.append("artist", inputs.artist);
-    formData.append("jacket", inputs.jacket);
+    let reCaptchaValue = reCaptcha.current.getValue();
 
-    setInputs({});
-    fileInput.current.value = ""; // 3. this resets the file input value :)
+    if (!reCaptchaValue) {
+      alert("Please confirm you are not a robot.");
+      return;
+    } else {
+      const formData = new FormData();
+      formData.append("title", inputs.title);
+      formData.append("year", inputs.year);
+      formData.append("artist", inputs.artist);
+      formData.append("jacket", inputs.jacket);
+      formData.append("reCaptchaValue", reCaptchaValue);
 
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API}/add`, {
-        method: "POST",
-        body: formData,
-      });
+      setInputs({});
+      fileInput.current.value = ""; // 3. this resets the file input value :)
 
-      if (response.ok) {
-        const data = await response.json();
-        console.log(data);
-        setAlbum(data);
-        alert(`added!`);
-      } else throw new Error("something went wrong...");
-    } catch (error) {
-      console.log(error);
-      alert(error.message);
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API}/add`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setAlbum(data);
+          alert(`added!`);
+        } else throw new Error("something went wrong...");
+      } catch (error) {
+        console.log(error);
+        alert(error.message);
+      }
+      alert("form submitted");
+      console.log ("este es el valor de recaptcha", reCaptcha.current.getValue());
     }
+
+    reCaptchaValue = reCaptcha.current.reset();
+    console.log ("captcha reset", reCaptcha.current.getValue());
   }
+  // function onRecaptchaChange(value) {
+  //   console.log("Captcha value:", value);
+  // }
 
   return (
     <>
       <h1>My Favorites</h1>
-      <form onSubmit={handleSubmit} className="form">
+      <form 
+      onSubmit={handleSubmit} 
+      className="form"
+      style={{display: "flex", flexDirection: "column", padding: "1rem", gap: ".8rem"}}>
         <input
           type="text"
           placeholder="artist"
@@ -91,6 +113,10 @@ function App() {
           accept="image/*"
         />
         <button>Add</button>
+        <ReCAPTCHA sitekey={import.meta.env.VITE_SITE} style={{display:"flex", justify: "center", alignContent: "center"}}  // this is our site key from .env file
+        
+        ref={reCaptcha}
+        theme="dark" />
       </form>
       {!!albums.length &&
         albums.map((album) => (
