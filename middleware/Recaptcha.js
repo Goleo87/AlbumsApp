@@ -6,9 +6,8 @@ async function verifyCaptcha(req, res, next) {
 
 
     // 1. Check if the user has passed the captcha
-
     const { reCaptchaValue } = req.body;
-    
+
     if (!reCaptchaValue) {
         throw new Error("Captcha is required");
     }
@@ -19,29 +18,23 @@ async function verifyCaptcha(req, res, next) {
                 method: "POST",
             }
         );
-
-        if (response.ok) {
-            const data = await response.json();
-            console.log(data);
-            res.status(201).json({ data });
-           
-        } else {
-            return next(
-                res.status(400).json({
-                    message: "Captcha verification failed"
-                })
-            );
-
+        const data = await response.json();
+        console.log(data);
+        if (!data.success) {
+            const error = new Error("Captcha verification failed");
+            return next(error);
         }
+        next();
 
     } catch (error) {
-        console.log("error veryfing Recaptcha", error);
-        next(res.status(500).json("Error in verifying captcha"));
+        next(error);
 
     }
 
 }
 export default verifyCaptcha;
+
+
 
 
 

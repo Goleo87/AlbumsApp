@@ -72,7 +72,7 @@ function App() {
     }
 
     reCaptchaValue = reCaptcha.current.reset();
-    console.log ("captcha reset", reCaptcha.current.getValue());
+    // console.log ("captcha reset", reCaptcha.current.getValue());
   }
   // function onRecaptchaChange(value) {
   //   console.log("Captcha value:", value);

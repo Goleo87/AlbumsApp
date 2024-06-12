@@ -14,6 +14,7 @@ const app = express();
 app.use(express.json());
 
 
+// Set up multer for file uploads
 
 const __filename = fileURLToPath(import.meta.url); //absolute path to the current file
 const __dirname = path.dirname(__filename); //directory name of the current file
@@ -28,7 +29,7 @@ let storage;
 if (process.env.NODE_ENV === "development") {
   storage = multer.diskStorage({
     destination: (req, file, callback) => {
-      callback(null, "frontend/public");
+      callback(null, "./frontend/public");
     },
     filename: (req, file, cb) => {
       cb(null, file.originalname);
@@ -38,7 +39,7 @@ if (process.env.NODE_ENV === "development") {
 } else {
   storage = multer.diskStorage({
     destination: (req, file, callback) => {
-      callback(null, "frontend/dist");
+      callback(null, "./frontend/dist/");
     },
     filename: (req, file, cb) => {
       cb(null, file.originalname);
@@ -108,7 +109,7 @@ app.patch("/update/:id", upload.single("jacket"), async (req, res, next) => {
 
 //All other requests except for the 4 server routes above
 app.get("*", (req, res, next) => {
-  res.sendFile(__dirname + "frontend/dist");
+  res.sendFile(__dirname + "/frontend/dist/");
 });
 
 //* Global Error Handling
