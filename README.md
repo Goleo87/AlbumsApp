@@ -1,5 +1,5 @@
 Albums App
-!on Development 
+on Development 
 
 This is a full-stack application built using JavaScript, React, and a backend server. The purpose of this app is to save artist albums along with images. It includes a form with a CAPTCHA for security.
 
